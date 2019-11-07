@@ -1,3 +1,9 @@
+# 忽略文件夹
+材料/
+Datathon2019/
+README-cn.md
+Datathon.md
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
