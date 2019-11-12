@@ -27,7 +27,7 @@ AND (date_trunc('day',h.charttime) + INTERVAL '2' day) BETWEEN icu.intime AND ic
 ORDER BY subject_id,hadm_id,icustay_id
 
 -----------------------------------------------
--- 高血钠提取 11-12
+-- 高血钠提取 11-12 23:51
 --fixed 修正为入lab48h后第一次出现高钠 count-> 2330 min()
 SELECT 
 --2330
@@ -61,6 +61,16 @@ AND (date_trunc('day',na.charttime_na_high) + INTERVAL '2' day) BETWEEN icu.inti
 ORDER BY subject_id,hadm_id,icustay_id
 -----------------------------------------------
 
+-----------------------------------------------
+/*生化指标提取的一个思路 11-13 00:19
+mimic项目中有个labs-first-day.sql,
+把其中用来确定病人的icustays表替换成高钠id的表，
+就可以完美融合(注意高钠id表的变量不要重名)
+
+然后就是非聚合变量放不进去的问题(na的值)，
+这个再对自身(高钠id表)做一次连接写进去即可
+*/
+-----------------------------------------------
 SELECT 
   h.subject_id,h.hadm_id,h.icustay_id,
   h.charttime AS charttime_high,h.intime,h.outtime
