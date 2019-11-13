@@ -107,4 +107,50 @@ LEFT JOIN mimiciii.labevents lab
 ON b.subject_id=lab.subject_id AND b.hadm_id=lab.hadm_id
 AND lab.charttime = b.charttime_first
 AND lab.itemid = 50983
-ORDER BY subject_id,hadm_id,icustay_id
+ORDER BY subject_id,hadm_id,icustay_id;
+
+
+-------排除准则 
+-------11月13日更新
+
+CREATE TABLE z_hyperna_full_patients AS
+select z.subject_id,z.hadm_id,z.icustay_id,
+z.intime,z.charttime_first,z.charttime_na_high,z.charttime_last,z.outtime,
+z.na_first,z.na_high,z.na_last,
+pa.gender, pa.dob,pa.dod,(EXTRACT(year FROM  z.charttime_first)-EXTRACT(year FROM  pa.dob)) as age
+from z_hyperna_full z
+inner join patients pa
+on z.subject_id=pa.subject_id and EXTRACT(year FROM  z.charttime_first)-EXTRACT(year FROM  pa.dob)>18;
+
+update z_hyperna_full_patients
+set age=90
+where age>90;
+
+--删除甲状和库欣
+CREATE TABLE thyroid AS
+select * from diagnoses_icd
+where icd9_code in(
+SELECT icd9_code FROM d_icd_diagnoses
+WHERE long_title ILIKE '%thyroiditis%' or  long_title ILIKE '%hyperparathyroidism%' or  long_title ILIKE '%hypothyroidism%' or  long_title ILIKE '%hyperthyroidism%' or long_title ILIKE '%Cushing%'  );
+
+delete from z_hyperna_full_patients
+where subject_id in (
+				 select z_hyperna_full_patients.subject_id
+				 from z_hyperna_full_patients,thyroid
+				 where z_hyperna_full_patients.subject_id=thyroid.subject_id and z_hyperna_full_patients.hadm_id=thyroid.hadm_id
+);
+
+--删除透析
+CREATE TABLE touxi AS
+SELECT subject_Id ,HADM_ID FROM chartevents WHERE ITEMID IN
+(
+SELECT ITEMID FROM  d_items WHERE LABEL LIKE '%dialysis%' AND LINKSTO = 'chartevents'
+);
+
+
+delete from z_hyperna_full_patients
+where subject_id in (
+				 select z_hyperna_full_patients.subject_id
+				 from z_hyperna_full_patients,touxi
+				 where z_hyperna_full_patients.subject_id=touxi.subject_id and z_hyperna_full_patients.hadm_id=touxi.hadm_id
+);
