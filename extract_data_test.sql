@@ -49,6 +49,5 @@ AND (date_trunc('day',na.charttime_na_high) + INTERVAL '2' day) BETWEEN icu.inti
 ORDER BY subject_id,hadm_id,icustay_id
 --CREATE TABLE z_high_na_all AS
 
-SELECT 
-  lc.subject_id,lc.hadm_id,lc.icustay_id,
-  mean(CASE WHEN  valuenum)
+----------------------完善钠表，前后各48H，加进去
+

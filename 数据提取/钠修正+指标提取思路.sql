@@ -12,16 +12,17 @@ SELECT
   na.charttime_na_high,na.valuenum as na_high,
   icu.intime,icu.outtime
 FROM
-  (  -- 10912
+  (   
   SELECT 
+  --raw02 raw01中有icu记录的 11537 -> 10192
     h.subject_id,h.hadm_id,
     h.charttime as charttime_na_high,lab.valuenum
   FROM
     (
       SELECT 
         subject_id,hadm_id,min(charttime) AS charttime
-      --raw 所有出现过钠过高的
-      --fixed 修正为入lab48h后第一次出现高钠 count-> 2330 min()
+      --raw01 所有出现过钠过高的   11537
+      --fixed03 修正为入lab48h后第一次出现高钠 count-> 2330 min()
       FROM mimiciii.labevents
       WHERE itemid = 50983 AND valuenum > 145 
       GROUP BY subject_id,hadm_id
@@ -47,3 +48,21 @@ mimic项目中有个labs-first-day.sql,
 然后就是非聚合变量放不进去的问题(na的值)，
 这个再对自身(高钠id表)做一次连接写进去即可
 */
+SELECT 
+  na.subject_id,na.hadm_id,na.icustay_id,
+  na.charttime_na_high,na.na_high,na.intime,na.outtime,
+  q.charttime_last
+FROM z_high_na_all na
+LEFT JOIN  
+  (
+    --raw 查找入icu后出现高钠往h后推 2天  的钠值 count-> 2283 min()
+    SELECT 
+      lab.subject_id,lab.hadm_id,max(lab.charttime) AS charttime_last --,lab.valuenum
+    
+    FROM mimiciii.labevents lab
+    INNER JOIN mimiciii.z_high_na_all h
+    ON lab.subject_id=h.subject_id AND lab.hadm_id=h.hadm_id AND lab.itemid = 50983 
+    AND (date_trunc('day',lab.charttime)) BETWEEN(date_trunc('day',h.charttime )+interval '1' day) AND ((date_trunc('day',h.charttime )+interval '2' day))  
+    GROUP BY lab.subject_id,lab.hadm_id
+  ) AS q
+ON na.subject_id=q.subject_id AND na.hadm_id=q.hadm_id

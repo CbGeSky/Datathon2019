@@ -29,20 +29,24 @@ ORDER BY subject_id,hadm_id,icustay_id
 -----------------------------------------------
 -- 高血钠提取 11-12 23:51
 --fixed 修正为入lab48h后第一次出现高钠 count-> 2330 min()
+--CREATE TABLE z_high_na_all AS
 SELECT 
 --2330
   na.subject_id,na.hadm_id,icu.icustay_id,
   na.charttime_na_high,na.valuenum as na_high,
   icu.intime,icu.outtime
 FROM
-  (  -- 10912
+  (   
   SELECT 
+  --raw02 raw01中有icu记录的 11537 -> 10192
     h.subject_id,h.hadm_id,
     h.charttime as charttime_na_high,lab.valuenum
   FROM
     (
       SELECT 
         subject_id,hadm_id,min(charttime) AS charttime
+      --raw01 所有出现过钠过高的   11537
+      --fixed03 修正为入lab48h后第一次出现高钠 count-> 2330 min()
       FROM mimiciii.labevents
       WHERE itemid = 50983 AND valuenum > 145 
       GROUP BY subject_id,hadm_id
