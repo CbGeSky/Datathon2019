@@ -18,3 +18,4 @@ LEFT JOIN diabetes d
 ON d.hadm_id = na.hadm_id
 GROUP BY na.subject_id, na.hadm_id, na.icustay_id
 ORDER BY na.subject_id, na.hadm_id, na.icustay_id;
+

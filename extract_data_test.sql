@@ -49,5 +49,12 @@ AND (date_trunc('day',na.charttime_na_high) + INTERVAL '2' day) BETWEEN icu.inti
 ORDER BY subject_id,hadm_id,icustay_id
 --CREATE TABLE z_high_na_all AS
 
-----------------------完善钠表，前后各48H，加进去
 
+----肾毒性药物使用记录
+SELECT na.subject_id,na.hadm_id,na.icustay_id,charttime_na_high,charttime_last,
+startdate,enddate,drug,dose_val_rx,dose_unit_rx
+FROM z_hyperna_full_patients na
+LEFT JOIN prescriptions p
+ON p.subject_id = na.subject_id AND p.hadm_id = na.hadm_id AND p.icustay_id = na.icustay_id
+AND startdate BETWEEN date_trunc('day', na.charttime_na_high) AND na.charttime_last
+WHERE drug ilike '%Amphotericin B%' 
