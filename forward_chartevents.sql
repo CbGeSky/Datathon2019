@@ -65,7 +65,7 @@ FROM
 
   FROM z_hyperna_full_patients ie
 
-  LEFT JOIN labevents le
+  LEFT JOIN chartevents le
     ON le.subject_id = ie.subject_id AND le.hadm_id = ie.hadm_id
     AND le.charttime BETWEEN (ie.charttime_first ) AND (ie.charttime_na_high)
     AND le.itemid in
